@@ -46,7 +46,7 @@ public class Game {
 
     @Override
     public String toString() {
-        return "Word: " + String.valueOf(wordArray) + ", Remaining failed attempts: " + tries;
+        return "Word: " + String.valueOf(wordArray) + " Remaining failed attempts: " + tries;
     }
 
     private void checkAndReplaceChar(String guess) {

@@ -11,7 +11,6 @@ import org.inlm2.client.net.OutputHandler;
 import org.inlm2.client.view.GameView;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 public class Controller {
     private Client client;
@@ -36,22 +35,21 @@ public class Controller {
 
     public void connect(String ip, int port, OutputHandler outputHandler) {
         view.getTextArea().clear();
-        CompletableFuture.runAsync(() -> {
-            disconnect();
-            client = new Client(ip, port, outputHandler);
+        disconnect();
+        client = new Client(ip, port, outputHandler);
+        try {
+            client.connect();
+            connected = true;
+            outputHandler.handleNewConnection("Connected to " + ip + ":" + port);
+        } catch (IOException ie) {
+            appendText("Failed to establish connection.");
             try {
-                client.connect();
-                connected = true;
-            } catch (IOException ie) {
-                appendText("Failed to establish connection.");
-                try {
-                    client.disconnect();
-                    connected = false;
-                } catch (Exception e) {
-                    System.out.println("Cleanup failed.");
-                }
+                client.disconnect();
+                connected = false;
+            } catch (Exception e) {
+                System.out.println("Cleanup failed.");
             }
-        }).thenRun(() -> outputHandler.handleNewConnection("Connected to " + ip + ":" + port));
+        }
     }
 
     public void disconnect() {
@@ -59,6 +57,7 @@ public class Controller {
             try {
                 client.disconnect();
                 connected = false;
+                isGameOngoing = false;
                 appendText("Disconnected.");
             } catch (IOException e) {
                 Platform.runLater(() -> showAlert("Failed to disconnect."));
@@ -67,32 +66,28 @@ public class Controller {
     }
 
     public void sendGuessMessage(String guess) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                if(isGameOngoing) {
-                    client.sendGuessMessage(guess);
-                } else {
-                    Platform.runLater(() -> showAlert("Start a new game."));
-                }
-            } catch (IOException e) {
-                System.out.println(e);
+        try {
+            if(isGameOngoing) {
+                client.sendGuessMessage(guess);
+            } else {
+                Platform.runLater(() -> showAlert("Start a new game."));
             }
-        });
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 
     public void sendNewGameMessage() {
-        CompletableFuture.runAsync(() -> {
-            try {
-                if(!isGameOngoing) {
-                    client.sendNewGameMessage();
-                    isGameOngoing = true;
-                } else {
-                    Platform.runLater(() -> showAlert("Game already ongoing."));
-                }
-            } catch (IOException e) {
-                System.out.println(e);
+        try {
+            if(!isGameOngoing) {
+                client.sendNewGameMessage();
+                isGameOngoing = true;
+            } else {
+                Platform.runLater(() -> showAlert("Game already ongoing."));
             }
-        });
+        } catch (IOException e) {
+            System.out.println(e);
+        }
     }
 
     public void showAlert(String message) {
