@@ -154,7 +154,8 @@ public class Controller {
         }
 
         @Override
-        public void handleGameOver() {
+        public void handleGameOver(String message) {
+            appendText(message);
             appendText("Game over, start a new game to play again.");
             isGameOngoing = false;
         }

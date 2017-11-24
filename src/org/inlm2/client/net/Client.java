@@ -141,7 +141,7 @@ public class Client implements Runnable {
             String[] arr = msg.split(",");
             ForkJoinPool.commonPool().execute(() -> {
                 if (arr[0].equalsIgnoreCase(MessageType.GAME_OVER.toString())) {
-                    outputHandler.handleGameOver();
+                    outputHandler.handleGameOver(arr[1]);
                 } else if(arr[0].equalsIgnoreCase(MessageType.NONE.toString())) {
                     if (first) {
                         outputHandler.handleNewConnection(arr[1]);
